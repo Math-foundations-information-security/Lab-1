@@ -4,12 +4,15 @@ from lib.field import Field
 from lib.polynomial import Polynomial
 from lib.gcd import gcd, extended_gcd
 from lib.mobius import mobius
+from lib.irreducibility import (
+    build_table_polynomial,
+    is_irreducible_by_table,
+    is_irreducible_by_criterion,
+    find_irreducible,
+)
 
-def main():
-    start_time = time.perf_counter()
 
-    field = Field(2)
-
+def demo_arithmetic(field):
     print("Конечное поле:", field, "\n")
 
     f = Polynomial([1, 1, 0, 1], field)
@@ -40,14 +43,114 @@ def main():
     print("t   =", t)
     print("Проверка s*f + t*g =", s * f + t * g, "\n")
 
+
+def demo_mobius():
     print("Функция Мёбиуса:")
 
     for n in range(1, 18):
         print(f"M({n}) = {mobius(n)}")
 
+    print()
+
+
+def demo_tables():
+    print("Таблицы неприводимых многочленов T_{p,n} (теорема 9.2):")
+
+    for p, n in [(2, 2), (2, 3), (2, 4), (3, 3)]:
+        field = Field(p)
+        table = build_table_polynomial(field, n)
+
+        print(f"T_{p},{n}(x) =", table)
+
+    print()
+
+
+def demo_irreducibility():
+    print("Проверка неприводимости (таблица и критерий Рабина):")
+
+    tests = [
+        (2, [1, 1, 1],        "x^2 + x + 1 над F2"),
+        (2, [1, 0, 1],        "x^2 + 1 = (x+1)^2 над F2"),
+        (2, [1, 1, 0, 1],     "x^3 + x + 1 над F2"),
+        (2, [1, 0, 1, 0, 1],  "x^4 + x^2 + 1 над F2 (пример из п. 9)"),
+        (2, [1, 1, 0, 0, 1],  "x^4 + x + 1 над F2"),
+        (2, [1, 0, 0, 1, 1],  "x^4 + x^3 + 1 над F2"),
+        (3, [2, 2, 0, 1],     "x^3 + 2x + 2 над F3 (теорема 12.1)"),
+        (3, [1, 0, 1, 0, 1],  "x^4 + x^2 + 1 над F3 (задача с доски)"),
+    ]
+
+    for p, coefficients, title in tests:
+        field = Field(p)
+        f = Polynomial(coefficients, field)
+
+        by_table = is_irreducible_by_table(f)
+        by_criterion = is_irreducible_by_criterion(f)
+
+        print(f"{title}: таблица = {by_table}, критерий = {by_criterion}")
+
+    print()
+
+    print("Все неприводимые степени 3 над F2 (список из п. 9):")
+
+    for f in find_irreducible(Field(2), 3, count=8):
+        print("  ", f)
+
+    print()
+
+
+def demo_inverse():
+    print("Обратные по модулю неприводимых многочленов:")
+
+    field3 = Field(3)
+
+    modulus = Polynomial([2, 2, 0, 1], field3)
+    a = Polynomial([1, 1, 1], field3)
+
+    print("Поле F3, модуль m(x) =", modulus,
+          "(неприводим:", is_irreducible_by_criterion(modulus), ")")
+    print("a(x) =", a)
+
+    inverse = a.inverse_mod(modulus)
+
+    print("a^(-1) mod m =", inverse)
+    print("Проверка a * a^(-1) mod m =", a * inverse % modulus, "\n")
+
+    print("Поле F5, поиск неприводимого многочлена степени 10:")
+
+    field5 = Field(5)
+    start = time.perf_counter()
+
+    found = find_irreducible(field5, 10, count=1)
+    elapsed = time.perf_counter() - start
+
+    modulus = found[0]
+
+    print("m(x) =", modulus)
+    print(f"Найден за {elapsed:.6f} сек.")
+
+    a = Polynomial([2, 3, 0, 0, 1, 0, 0, 4, 0, 2], field5)
+
+    print("a(x) =", a)
+
+    inverse = a.inverse_mod(modulus)
+
+    print("a^(-1) mod m =", inverse)
+    print("Проверка a * a^(-1) mod m =", a * inverse % modulus, "\n")
+
+
+def main():
+    start_time = time.perf_counter()
+
+    demo_arithmetic(Field(2))
+    demo_mobius()
+    demo_tables()
+    demo_irreducibility()
+    demo_inverse()
+
     total_time = time.perf_counter() - start_time
 
-    print(f"\nОбщее время работы программы: " f"{total_time:.6f} сек.")
+    print(f"Общее время работы программы: {total_time:.6f} сек.")
+
 
 if __name__ == "__main__":
     main()
