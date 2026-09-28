@@ -4,13 +4,13 @@ from lib.field import Field
 from lib.polynomial import Polynomial
 from lib.gcd import gcd, extended_gcd
 from lib.mobius import mobius
+from lib.euler import euler_phi
 from lib.irreducibility import (
     build_table_polynomial,
     is_irreducible_by_table,
     is_irreducible_by_criterion,
     find_irreducible,
 )
-
 
 def demo_arithmetic(field):
     print("Конечное поле:", field, "\n")
@@ -52,9 +52,8 @@ def demo_mobius():
 
     print()
 
-
 def demo_tables():
-    print("Таблицы неприводимых многочленов T_{p,n} (теорема 9.2):")
+    print("Таблицы неприводимых многочленов T_{p,n}:")
 
     for p, n in [(2, 2), (2, 3), (2, 4), (3, 3)]:
         field = Field(p)
@@ -90,7 +89,7 @@ def demo_irreducibility():
 
     print()
 
-    print("Все неприводимые степени 3 над F2 (список из п. 9):")
+    print("Все неприводимые степени 3 над F2:")
 
     for f in find_irreducible(Field(2), 3, count=8):
         print("  ", f)
@@ -137,15 +136,114 @@ def demo_inverse():
     print("a^(-1) mod m =", inverse)
     print("Проверка a * a^(-1) mod m =", a * inverse % modulus, "\n")
 
+def demo_euler():
+    print("Функция Эйлера:")
+
+    for n in range(1, 18):
+        print(f"φ({n}) = {euler_phi(n)}")
+
+    print()
+
+def demo_polynomial_power():
+    print("Возведение многочлена в степень:")
+
+    field = Field(2)
+
+    f = Polynomial([1, 1], field)
+
+    print("f(x) =", f)
+
+    for exponent in range(1, 6):
+        print(
+            f"f(x)^{exponent} =",
+            f ** exponent
+        )
+
+    print()
+
+    print("Возведение многочлена по модулю:")
+
+    modulus = Polynomial(
+        [1, 1, 0, 1],
+        field
+    )
+
+    print("m(x) =", modulus)
+
+    for exponent in [2, 3, 5, 10]:
+        result = f.pow_mod(
+            exponent,
+            modulus
+        )
+
+        print(
+            f"f(x)^{exponent} mod m(x) =",
+            result
+        )
+
+    print()
+
+def demo_order():
+    print("Порядок многочлена:")
+
+    field = Field(2)
+
+    # x + 1
+    f = Polynomial([1, 1], field)
+
+    modulus = Polynomial(
+        [1, 1, 0, 1],
+        field
+    )
+
+    print("Поле:", field)
+    print("f(x) =", f)
+    print("m(x) =", modulus)
+
+    order = f.order(modulus)
+
+    print("Порядок f(x) =", order)
+
+    print(
+        "Проверка f(x)^order mod m(x) =",
+        f.pow_mod(order, modulus)
+    )
+
+    print()
+
+def demo_cyclotomic():
+    print("Круговые многочлены:")
+
+    field = Field(2)
+
+    print("Поле:", field)
+    print()
+
+    for n in range(1, 11):
+        polynomial = Polynomial.cyclotomic(
+            n,
+            field
+        )
+
+        print(
+            f"Φ_{n}(x) =",
+            polynomial
+        )
+
+    print()
 
 def main():
     start_time = time.perf_counter()
 
     demo_arithmetic(Field(2))
     demo_mobius()
+    demo_euler()
     demo_tables()
     demo_irreducibility()
     demo_inverse()
+    demo_polynomial_power()
+    demo_order()
+    demo_cyclotomic()
 
     total_time = time.perf_counter() - start_time
 
