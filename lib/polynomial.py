@@ -18,6 +18,12 @@ class Polynomial:
 
         self.coefficients = coefficients
 
+    @classmethod
+    def cyclotomic(cls, n, field):
+        from .cyclotomic import build_cyclotomic
+
+        return build_cyclotomic(n, field)
+
     @property
     def degree(self):
         if self.is_zero():
@@ -263,8 +269,13 @@ class Polynomial:
                 "Обратного многочлена не существует: "
                 "НОД не равен 1"
             )
-
+        
         return s % modulus
+
+    def order(self, modulus):
+        from .order import polynomial_order
+
+        return polynomial_order(self, modulus)
 
     def __str__(self):
         if self.is_zero():
